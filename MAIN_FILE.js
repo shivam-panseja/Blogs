@@ -9,48 +9,50 @@ const prisma = new PrismaClient();
 
 app.use(bodyparser.json()); // Middleware to parse JSON request bodies
 // Mock data for storing blog posts
-let blog_title = [];
-let blogPosts = [];
+// let blog_title = [];
+// let blogPosts = [];
 
 // GET all blog posts
 app.get("/posts", async (req, res) => {
-  await prisma.blogs.findMany({
+  const redblog = await prisma.blogs.findMany();
+  console.log("hello sir");
+  res.json(redblog);
+});
+
+app.post("/newposts", async (req, res) => {
+  const { Blog_Post, Blog_Title } = req.body;
+
+  // Create a new blog post
+  const newPost = await prisma.blogs.create({
     data: {
-      Blog_Post: req.body.Blog_Post,
-      Blog_Title: req.body.Blog_Title,
+      Blog_Title,
+      Blog_Post,
     },
   });
-
-  res.send({ posts: blogPosts, title: blog_title });
-  console.log("GET all blog posts");
+  console.log("error");
+  res.json(newPost);
 });
 
 // to get from particular id
-app.get("/:id", (req, res) => {
-  const postId = parseInt(req.params.id);
-  const post = blogPosts[postId];
-  if (!post) {
+app.get("/;post/:id", (req, res) => {
+  const postId = parseInt(req.params.id, 10);
+  if (isNaN(postId)) {
     return res.status(404).send({ message: "Post not found" });
   }
-  res.send(post);
+  const post = Blogs[postId];
+  res.json(post);
   console.log(`GET blog post with id: ${postId}`);
 });
 
-app.post("/newpost", async (req, res) => {
-  await prisma.blogs.create({
-    data: {
-      Blog_Post: req.body.Blog_Post,
-      Blog_Title: req.body.Blog_Title,
-    },
+app.delete("/id", async (req, res) => {
+  const { id } = req.params;
+  if (isNaN(id)) {
+    res.status(400).json({ error: "id is not a number" });
+  }
+  const delted = await prisma.blogs.delete({
+    where: { id: id },
   });
-
-  res.send("");
-});
-
-app.delete("/deletepost", (req, res) => {
-  const postIndex = parseInt(req.params.id);
-  blogPosts.splice(postIndex, 1);
-  res.send({ title: { blog_title, posts: blogPosts } });
+  res.json("user deleted");
 });
 
 app.listen(3000);
